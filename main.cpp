@@ -198,10 +198,117 @@ bool mantissa(char numString[], int& numerator, int& denominator){
 }
 
 //--
+void add_reverseArrays(char* result, char* reverse, int result_length)
+{
+	//reverses the reverse array and stores the values in result
+	for (int i = 0; i < result_length; i++)
+	{
+		result[i] = reverse[result_length - 1 - i];
+	}
+	result[result_length + 1] = '\0';
+}
+bool add_equalizeDenominators(int& n1, int& d1, int& n2, int& d2, int len)
+{
+	//Function to change both the numerator and denominator so that
+	//both denominators are the same and we can add the numerators together
+	//to get the decimal result
+	if (d1 % 10 == 0 && d2 % 10 == 0)
+	{
+		//test for which numerator and denominator we should change
+		bool d1IsBigger = d1 > d2 ? true : false; //ternary operator
+		bool d2IsBigger = d2 > d1 ? true : false;
+		while (d1IsBigger)
+		{
+			//change d2
+			d2 *= 10;
+			n2 *= 10;
+			//see if theyre the same size
+			d1IsBigger = d1 > d2 ? true : false;
+		}
+		while (d2IsBigger)
+		{
+			//change d1
+			d1 *= 10;
+			n1 *= 10;
+			//see if they are same size
+			d2IsBigger = d2 > d1 ? true : false;
+		}
+		return true;
+	}
+	else
+	{
+		//if d1 and d2 are not divisible by 10, return false
+		return false;
+	}
+}
+void add_putNumbersIntoResultArray(int & characteristic, int& numerator, int& denominator, char result[], int& len)
+{
+	char* reverse = new char[len];
+	int temp_characteristic_for_finding_characteristic_length = characteristic;
+	int result_length = 0;
+	int numerator_holder = 0;
+	//First we put our decimals into the reverse array
+	while (denominator >= 10)
+	{
+		denominator /= 10;
+		numerator_holder = numerator % 10;
+		numerator /= 10;
+		//were using reverse b/c numerator % 10 gives us the last digit
+
+		reverse[result_length] = numerator_holder + 48;
+		result_length++;
+
+		if (result_length > len - 1)
+		{
+			//if we overstep the char array's limits, then we store what we can and truncate
+			//the rest
+			add_reverseArrays(result, reverse, result_length);
+			return;
+		}
+	}
+	//inputs the decimal point
+	reverse[result_length] = '.';
+	result_length++;
+
+	if (result_length > len - 1)
+	{
+		add_reverseArrays(result, reverse, result_length);
+		return;
+	}
+	//inputs the characteritic to the result array
+	while (characteristic > 0)
+	{
+		reverse[result_length] = 48 + characteristic % 10;
+		result_length++;
+		if (result_length > len - 1)
+		{
+			add_reverseArrays(result, reverse, result_length);
+			return;
+		}
+		characteristic /= 10;
+	}
+	add_reverseArrays(result, reverse, result_length);
+	delete[] reverse;
+}
 bool add(int c1, int n1, int d1, int c2, int n2, int d2, char result[], int len)
 {
-    //replace this code with your function
-    return false;
+	int characteristic = c1 + c2;
+
+	bool return_from_parse_fractions = add_equalizeDenominators(n1, d1, n2, d2, len);
+	//if something was messed up, return false for the function
+	if (!return_from_parse_fractions)
+		return false;
+
+	int numerator = n1 + n2;
+	//if the numerators when added together are greater than the denominator, then
+	//we can add one to characteristic
+	if (numerator / d1 > 0)
+	{
+		characteristic++;
+		numerator -= d1;
+	}
+	add_putNumbersIntoResultArray(characteristic, numerator, d1, result, len);
+	return true;
 }
 //--
 bool subtract(int c1, int n1, int d1, int c2, int n2, int d2, char result[], int len)
